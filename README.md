@@ -170,96 +170,95 @@ Here's an example of how your manifest entry might look:
 </service>
 
 Make sure to replace `YourServiceClass` with the actual name of your service class. The action name defined here will be used in the client application to interact with the service.
+### Use ViewBinding
+For simplicity in code management, we can choose to implement the ViewBinding library. Let's start by declaring our intent to use it.
 
-Using ViewBinding
-To simplify the code, we can utilize the ViewBinding library. Let's start by declaring its use in our project.
+### Modify the Activity
+We will update the Activity to reflect client information, displaying details of the last connected client. If there is no connected client, the layout will remain hidden.
 
-Modifying the Activity
-Next, we will update the Activity to display the last connected client information. The UI layout will be hidden if no client is connected.
+### Create the Client Application
+1. **Start a New Project**: Create a new project and name it `IPCServer`.
+2. **Choose a Template**: For the remainder of this article, we'll use this application for various IPC methods (like Broadcast and Messenger). Thus, select the "Bottom Navigation Activity" from the activity gallery when creating the project. This template will accommodate AIDL, Messenger, and Broadcast methods.
 
-Creating the Client Application
-Project Creation: Create a new project and name it IPCServer.
+### Copy-Paste the AIDL File
+1. **Add AIDL File**: Once the project is open, include the exact same AIDL file created in the server application and rebuild the project.
+2. **Creating AIDL File**: To create the file, navigate to `New -> AIDL -> AIDL File`.
+3. **Directory Structure**: It’s crucial that the directory structure for the AIDL file is consistent in both applications. When created via the IDE, it defaults to `src/main/aidl/com/piyush/ipcclient/`, but it should be updated to `src/main/aidl/com/piyush/ipcserver/`.
+4. **Copy Content**: Make sure to copy the entire content of the AIDL file, including the package name.
 
-Project Structure: This application will serve as a foundation for exploring other IPC methods, including Broadcast and Messenger. Therefore, select Bottom Navigation Activity from the activity gallery during project creation.
+### Set UI-Related Elements
+1. **Edit Menu File**: Update the menu file located in the `/res/menu/` directory.
+2. **Update Navigation File**: Modify the navigation file found in the `/res/navigation/` directory.
+3. **Edit String Resources**: Make necessary changes to the string resource file.
+4. **Change Theme Colors**: Adjust colors in the theme to visually differentiate it from the server.
+5. **Leave Activity XML Unchanged**: Do not alter the Activity XML file.
 
-Adding the AIDL File
-After opening the project, add the AIDL file that was created in the server application. Follow these steps:
+### Configure Navigation and Binding in Activity
+Set up the navigation and binding configuration in your Activity.
 
-Navigate to New -> AIDL -> AIDL File.
-Ensure that the AIDL file is located in the same directory in both applications. When created via the IDE, it will typically be under src/main/aidl/com/piyush/ipcclient/. Update it to src/main/aidl/com/piyush/ipcserver/.
-Copy and paste the content from the original AIDL file, including the package name.
-Setting Up the UI
-Edit Menu: Modify the menu file located in the /res/menu/ directory.
-Edit Navigation: Update the navigation file in the /res/navigation/ directory.
-Edit String Resources: Change the string resources in the corresponding file.
-Theme Customization: Alter the colors in the theme to distinguish it from the server application.
-No Changes in Activity XML: Do not modify the Activity XML file.
-Configuring Navigation and Binding in Activity
-Next, create a fragment for handling client interactions.
+### Create a Fragment
+1. **Fragment XML File**: Create the XML layout file for the fragment.
+2. **Connect-Disconnect Button**: Add a button to facilitate connection and disconnection from the server.
+3. **Hidden Layout**: Include a layout that will become visible upon establishing a connection. This layout will display information received from the server application.
 
-Creating the Fragment
-XML Layout: Create the XML layout for the fragment.
-Connect/Disconnect Button: Implement a button to manage connection states.
-Hidden Layout: Add a layout that appears when a connection is established, displaying information received from the server.
-Implementing Business Logic in Fragment
-View Binding: Handle view binding in the fragment.
-Service Binding: Bind to the server service when the Connect button is pressed. Use the BIND_AUTO_CREATE flag for automatic service creation if it's not already running.
-ServiceConnection Interface: Implement the ServiceConnection interface to listen for connection status.
-Message Sending: When connected, send the message containing the package name and PID to the server and display the responses on the UI.
-Unbinding: When the connection is broken, unbind from the service to clean up resources. Avoid remaining bound to the service if it’s not being used, as the system may terminate background services that lack user interaction.
-Client Application Completion
-Now that we have implemented the client application, it is ready to communicate with the server. The UI will reflect the interaction flow when invoking server methods.
+### Implement Business Logic in Fragment
+1. **View Binding**: Set up View Binding within the Fragment.
+2. **Bind to Server**: When the Connect button is pressed, bind to the server service. If the service is not yet created during the bind process, use the `BIND_AUTO_CREATE` flag for automatic creation.
+3. **Service Connection Listening**: Implement the `ServiceConnection` interface to listen for connection events.
+4. **Send Messages**: Upon establishing the connection, send the package name and PID to the server, then display the responses in the GUI.
+5. **Clean Up on Disconnection**: When the connection is broken, ensure to unbind from the service. Background services in applications without user interaction can be killed by the operating system to free up memory. In Bound Services, as long as at least one client is bound, background services remain active, except in extreme cases. Therefore, avoid remaining bound to the service when it's not in use.
 
-Improving Applications for Messenger Support
-Understanding Messenger
-Messenger is a Handler sent to a remote process. This technique operates on the Binder architecture similar to AIDL but simplifies implementation. However, while Messenger is easier to use, it has limitations compared to AIDL:
+### Finalization of the Client Application
+Now that we've set everything up, the client application is complete. The flow in the graphical interface when invoking methods on the server will function as described.
 
-AIDL supports concurrent operations, while Messenger queues and executes calls sequentially.
-With AIDL, multiple calls can be received simultaneously from different processes/threads, whereas Messenger guarantees that only one message is processed at a time.
-Server Application Enhancements
-Manifest Declaration: Add the action "messengerexample" in the Manifest to be sent from the client to the service.
+### Messenger Overview
+**What is Messenger?**  
+Messenger is a Handler sent to a remote process, utilizing the Binder architecture akin to AIDL. Implementing Messenger is generally easier than AIDL since it creates and uses AIDL files in the background, freeing developers from that complexity. 
 
-Service Update: Create a Handler object in the service to manage messages from the client. Update the RecentClient object to reflect the GUI based on incoming messages.
+However, while Messenger offers convenience, it has limitations compared to AIDL. For instance, AIDL supports concurrent operations, while Messenger executes calls sequentially, ensuring that messages are processed from only one process or thread at a time.
 
-Messenger Creation: Create a Messenger using the Handler object. This object facilitates communication between the client and server. The msg.replyTo object from the client's message can be used to send replies back to the client.
+### How Messenger Works
+As with the previous example, the client binds to the server’s service, receiving a Messenger object in return. This setup enables communication between the two applications through Message objects.
 
-Constants: Define the constants used as bundle keys in messages.
+### Begin with the Server Application
+1. **Declare Intent Filter**: In the Manifest, add the action `messengerexample` that will be sent from the client application to the service. This action will specify which IPC method the client is using.
 
-onBind Method: Update the onBind method in the service to return the Messenger object when a client binds with the "messengerexample" action.
+2. **Update the Service**: Create a Handler in the service to process messages from the client, updating the RecentClient object to refresh the GUI as necessary. Establish the Messenger with the Handler for communication.
 
-Client Application Adjustments
-Bundle Key Constants: Add the same constants used in the server application.
+3. **Handle Client Messages**: The `msg.replyTo` object from the client's message can be captured for potential responses. This facilitates two-way communication without much complexity.
 
-Fragment UI: Use the same XML layout as before, but with a different button name.
+4. **Update onBind Method**: Modify the `onBind` method in the service to accommodate clients binding with the `messengerexample` action. The Messenger object, containing an internal binder, will be returned to the client.
 
-Fragment Update
-Messenger Objects: Define two Messenger objects:
+### Client Application Adjustments
+1. **Add Constants**: Incorporate the constants used for bundle keys in the client application as well.
+2. **Update XML**: Use the same XML layout for the fragment as used in the AIDL setup, with the only difference being the button name.
 
-clientMessenger: For sending messages to the server.
-serverMessenger: For the server to use when replying to messages.
-Handler Definition: Create a handler to process incoming messages and update the UI accordingly.
+### Update the Fragment
+1. **Define Messenger Objects**: Introduce two Messenger objects in the fragment:
+   - `clientMessenger`: For sending messages to the server.
+   - `serverMessenger`: For the server to reply back.
 
-Binding Logic: Bind to the server upon clicking the connect button and unbind upon disconnecting. When a connection is established, send a message to the server using message.replyTo = clientMessenger to specify the expected response.
+2. **Define Incoming Message Handler**: Create a Handler to manage incoming messages, updating the UI accordingly.
+3. **Bind and Unbind**: Bind to the server upon clicking the connect button and unbind upon clicking the disconnect button. When successfully bound, send messages to the server.
+4. **Message Handling**: Set `message.replyTo` to `clientMessenger` for expected responses. If the service connection is lost, clear the information displayed on the UI.
 
-Connection Loss Handling: Clear the GUI information when the connection is lost.
+### Understanding Broadcasts
+**Broadcasts** differ from the other IPC techniques as they can be sent by both the system and applications. Applications can register for specific broadcasts using `BroadcastReceiver`. 
 
-Final Fragment Implementation
-The final version of the fragment will seamlessly manage communication between the client and server.
+Receivers are typically exported, allowing them to handle broadcasts from any other application. To add a security layer, permissions and action filters can be specified in the `<receiver>` tag in the Manifest. For this example, we will send broadcasts explicitly to particular applications.
 
-Exploring Broadcasts
-Broadcasts are a familiar IPC technique for Android developers. Unlike Messenger and AIDL, broadcasts can be sent by the system or applications, allowing receivers to listen for specific broadcasts using BroadcastReceiver.
+1. **Explicit Receivers**: These are exempt from the restrictions applicable to Manifest-defined receivers for API level 26. When defined in the Manifest, receivers are active when the application is loaded and can launch the application even if it is not running upon receiving a broadcast.
 
-Security and Permissions
-Receivers are typically exported and can receive broadcasts from any application. However, you can implement a simple security layer using permissions or action filters in the <receiver> tag in the Manifest.
+### Client Application for Broadcast
+1. **Sending Broadcast**: Since there is no two-way communication, the client will only send a broadcast with its information and display the broadcast time on the screen.
+2. **Define Explicit Intent**: Create an explicit intent with the server's package name and receiver class name to ensure only specific applications can listen to the broadcast.
 
-Explicit Intents
-For this example, we will send a broadcast to specific applications using explicit intents, defining both the package name and class name of the receiver to limit access.
+### Server Application for Broadcast
+1. **Declare Receiver**: Mark the receiver as exported in the Manifest.
+2. **Add Broadcast Filter**: Include the action filter utilized in the broadcast intent.
+3. **Create Receiver Class**: Implement the receiver class and update the client information on the UI based on the received data.
 
-Client Application Broadcasting
-Sending Broadcasts: Upon button press, send a broadcast containing the client’s information and display the broadcast time on the screen.
-Server Application Updates
-Receiver Declaration: Export the receiver in the Manifest.
-Broadcast Intent Filter: Add the filter to match the broadcast intent. It does not need to be a package name; using a unique string is preferred to avoid conflicts.
-Receiver Class Creation: Implement the receiver class to handle incoming broadcasts.
-UI Update: Update the client information on the UI when receiving broadcast data.
+### Conclusion
+We have explored various interprocess communication methods in Android by developing client-server applications supporting three different IPC techniques. The source code for the complete application is available in this repo.
 
+Special Thanks to @perihanmirkelam for their Insightful explaination.
